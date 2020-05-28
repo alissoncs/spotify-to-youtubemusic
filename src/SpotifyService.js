@@ -117,6 +117,27 @@ class SpotifyService {
     }
   }
 
+  async listTracksByPlaylistNames(playlists, names) {
+    assert.ok(this.token, 'token required to list playlists');
+
+    const filteredPlaylists = playlists.filter(p => names.indexOf(p.name) >= 0);
+    const requests = filteredPlaylists.map(playlist => {
+      return this.axios.get(`https://api.spotify.com/v1/playlists/${playlist.id}/tracks`, {
+        headers: {
+          Authorization: 'Bearer ' + this.token.access_token,
+        }
+      }).then((res) => {
+        return {
+          ...playlist,
+          total_tracks: res.data.items.length,
+          tracks: res.data.items,
+        };
+      })
+    })
+    const allResponses = await Promise.all(requests);
+    return allResponses;
+  }
+
 }
 
 module.exports = SpotifyService;
